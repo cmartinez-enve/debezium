@@ -436,7 +436,7 @@ public class PostgresValueConverter extends JdbcValueConverters {
             case PgOid.TIME:
                 return data -> convertTime(column, fieldDefn, data);
             case PgOid.DATE:
-                ValueConverter otemp = new ValueConverter() {
+                return new ValueConverter() {
 
                     ValueConverter inner = new ValueConverter() {
 
@@ -450,15 +450,33 @@ public class PostgresValueConverter extends JdbcValueConverters {
 
                     @Override
                     public Object convert(Object data) {
-                    	System.out.println(column.name());
+                        System.out.println(column.name());
                         Object result = inner.convert(data);
                         System.out.println(data.getClass().getName() + " =2> " + result.getClass().getName());
                         return result;
                     }
                 };
-                return otemp;
             case PgOid.TIMESTAMP:
-                return ((ValueConverter) (data -> convertTimestampToLocalDateTime(column, fieldDefn, data))).and(super.converter(column, fieldDefn));
+                return new ValueConverter() {
+
+                    ValueConverter inner = new ValueConverter() {
+
+                        @Override
+                        public Object convert(Object data) {
+                            Object local = convertTimestampToLocalDateTime(column, fieldDefn, data);
+                            System.out.println(local.getClass().getName() + " -=1> " + local.getClass().getName());
+                            return local;
+                        }
+                    }.and(PostgresValueConverter.super.converter(column, fieldDefn));
+
+                    @Override
+                    public Object convert(Object data) {
+                        System.out.println(column.name());
+                        Object result = inner.convert(data);
+                        System.out.println(data.getClass().getName() + " -=2> " + result.getClass().getName());
+                        return result;
+                    }
+                };
             case PgOid.TIMESTAMPTZ:
                 return data -> convertTimestampWithZone(column, fieldDefn, data);
             case PgOid.TIMETZ:
