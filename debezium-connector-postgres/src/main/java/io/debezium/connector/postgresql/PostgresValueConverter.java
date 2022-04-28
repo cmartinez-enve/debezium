@@ -89,12 +89,14 @@ import io.debezium.util.Strings;
  */
 public class PostgresValueConverter extends JdbcValueConverters {
 
+    public static final Date POSITIVE_INFINITY_DATE = new Date(PGStatement.DATE_POSITIVE_INFINITY);
     public static final Timestamp POSITIVE_INFINITY_TIMESTAMP = new Timestamp(PGStatement.DATE_POSITIVE_INFINITY);
     public static final Instant POSITIVE_INFINITY_INSTANT = Conversions.toInstantFromMicros(PGStatement.DATE_POSITIVE_INFINITY);
     public static final LocalDateTime POSITIVE_INFINITY_LOCAL_DATE_TIME = LocalDateTime.ofInstant(POSITIVE_INFINITY_INSTANT, ZoneOffset.UTC);
     public static final OffsetDateTime POSITIVE_INFINITY_OFFSET_DATE_TIME = OffsetDateTime.ofInstant(Conversions.toInstantFromMillis(PGStatement.DATE_POSITIVE_INFINITY),
             ZoneOffset.UTC);
 
+    public static final Date NEGATIVE_INFINITY_DATE = new Date(PGStatement.DATE_NEGATIVE_INFINITY);
     public static final Timestamp NEGATIVE_INFINITY_TIMESTAMP = new Timestamp(PGStatement.DATE_NEGATIVE_INFINITY);
     public static final Instant NEGATIVE_INFINITY_INSTANT = Conversions.toInstantFromMicros(PGStatement.DATE_NEGATIVE_INFINITY);
     public static final LocalDateTime NEGATIVE_INFINITY_LOCAL_DATE_TIME = LocalDateTime.ofInstant(NEGATIVE_INFINITY_INSTANT, ZoneOffset.UTC);
@@ -199,6 +201,8 @@ public class PostgresValueConverter extends JdbcValueConverters {
                 return column.length() > 1 ? Bits.builder(column.length()) : SchemaBuilder.bool();
             case PgOid.INTERVAL:
                 return intervalMode == IntervalHandlingMode.STRING ? Interval.builder() : MicroDuration.builder();
+            case PgOid.DATE:
+                return io.debezium.time.Date.builder();
             case PgOid.TIMESTAMPTZ:
                 // JDBC reports this as "timestamp" even though it's with tz, so we can't use the base class...
                 return ZonedTimestamp.builder();
@@ -431,6 +435,28 @@ public class PostgresValueConverter extends JdbcValueConverters {
                 return data -> convertInterval(column, fieldDefn, data);
             case PgOid.TIME:
                 return data -> convertTime(column, fieldDefn, data);
+            case PgOid.DATE:
+                ValueConverter otemp = new ValueConverter() {
+
+                    ValueConverter inner = new ValueConverter() {
+
+                        @Override
+                        public Object convert(Object data) {
+                            Object local = convertDateToLocalDateTime(column, fieldDefn, data);
+                            System.out.println(local.getClass().getName() + " =1> " + local.getClass().getName());
+                            return local;
+                        }
+                    }.and(PostgresValueConverter.super.converter(column, fieldDefn));
+
+                    @Override
+                    public Object convert(Object data) {
+                    	System.out.println(column.name());
+                        Object result = inner.convert(data);
+                        System.out.println(data.getClass().getName() + " =2> " + result.getClass().getName());
+                        return result;
+                    }
+                };
+                return otemp;
             case PgOid.TIMESTAMP:
                 return ((ValueConverter) (data -> convertTimestampToLocalDateTime(column, fieldDefn, data))).and(super.converter(column, fieldDefn));
             case PgOid.TIMESTAMPTZ:
@@ -1064,6 +1090,23 @@ public class PostgresValueConverter extends JdbcValueConverters {
                 .ofInstant(instant, ZoneOffset.systemDefault());
 
         return utcTime;
+    }
+
+    protected Object convertDateToLocalDateTime(Column column, Field fieldDefn, Object data) {
+        if (data == null) {
+            return null;
+        }
+        if (!(data instanceof Date)) {
+            return data;
+        }
+        if (POSITIVE_INFINITY_DATE.equals(data)) {
+            return POSITIVE_INFINITY_LOCAL_DATE_TIME;
+        }
+        else if (NEGATIVE_INFINITY_DATE.equals(data)) {
+            return NEGATIVE_INFINITY_LOCAL_DATE_TIME;
+        }
+
+        return data;
     }
 
     @Override
