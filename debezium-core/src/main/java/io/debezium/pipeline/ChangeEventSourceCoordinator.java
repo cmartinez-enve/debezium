@@ -54,7 +54,7 @@ public class ChangeEventSourceCoordinator<P extends Partition, O extends OffsetC
     /**
      * Waiting period for the polling loop to finish. Will be applied twice, once gracefully, once forcefully.
      */
-    public static final Duration SHUTDOWN_WAIT_TIMEOUT = Duration.ofSeconds(900);
+    public static final Duration SHUTDOWN_WAIT_TIMEOUT = Duration.ofSeconds(90);
 
     protected final Offsets<P, O> previousOffsets;
     protected final ErrorHandler errorHandler;
