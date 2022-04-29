@@ -864,7 +864,7 @@ public class PostgresValueConverter extends JdbcValueConverters {
             return "-infinity";
         }
         else {
-            return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(super.converter(column, fieldDefn).convert(data));
+            return new SimpleDateFormat("yyyy-MM-dd").format(data);
         }
     }
 
