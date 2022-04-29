@@ -861,6 +861,9 @@ public class PostgresValueConverter extends JdbcValueConverters {
             return "-infinity";
         }
         else {
+        	if (data instanceof LocalDate) {
+        		return String.valueOf(data);
+        	}
             return new SimpleDateFormat("yyyy-MM-dd").format(data);
         }
     }
