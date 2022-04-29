@@ -441,9 +441,6 @@ public class PostgresValueConverter extends JdbcValueConverters {
             case PgOid.TIMESTAMP:
                 return ((ValueConverter) (data -> convertTimestampToLocalDateTime(column, fieldDefn, data))).and(super.converter(column, fieldDefn));
             case PgOid.TIMESTAMPTZ:
-                if ("tz".equals(column.name())) {
-                    System.out.println("hi!");
-                }
                 return data -> convertTimestampWithZone(column, fieldDefn, data);
             case PgOid.TIMETZ:
                 return data -> convertTimeWithZone(column, fieldDefn, data);

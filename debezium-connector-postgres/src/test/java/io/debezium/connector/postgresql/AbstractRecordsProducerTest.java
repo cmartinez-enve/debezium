@@ -1049,12 +1049,7 @@ public abstract class AbstractRecordsProducerTest extends AbstractConnectorTest 
         else {
             assertNotNull("expected there to be content in Envelope under " + envelopeFieldName, content);
             expectedSchemaAndValuesByColumn.forEach(
-                    schemaAndValueField -> {
-                        if (schemaAndValueField.fieldName.startsWith("date")) {
-                            System.out.println("debug");
-                        }
-                        schemaAndValueField.assertFor(content);
-                    });
+            		schemaAndValueField -> schemaAndValueField.assertFor(content));
         }
     }
 
