@@ -15,6 +15,7 @@ import java.math.RoundingMode;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -440,6 +441,9 @@ public class PostgresValueConverter extends JdbcValueConverters {
             case PgOid.TIMESTAMP:
                 return ((ValueConverter) (data -> convertTimestampToLocalDateTime(column, fieldDefn, data))).and(super.converter(column, fieldDefn));
             case PgOid.TIMESTAMPTZ:
+                if ("tz".equals(column.name())) {
+                    System.out.println("hi!");
+                }
                 return data -> convertTimestampWithZone(column, fieldDefn, data);
             case PgOid.TIMETZ:
                 return data -> convertTimeWithZone(column, fieldDefn, data);
@@ -860,7 +864,7 @@ public class PostgresValueConverter extends JdbcValueConverters {
             return "-infinity";
         }
         else {
-            return super.converter(column, fieldDefn).convert(data);
+            return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(super.converter(column, fieldDefn).convert(data));
         }
     }
 
