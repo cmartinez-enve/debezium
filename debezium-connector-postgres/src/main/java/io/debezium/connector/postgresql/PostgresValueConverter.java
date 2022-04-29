@@ -436,47 +436,9 @@ public class PostgresValueConverter extends JdbcValueConverters {
             case PgOid.TIME:
                 return data -> convertTime(column, fieldDefn, data);
             case PgOid.DATE:
-                return new ValueConverter() {
-
-                    ValueConverter inner = new ValueConverter() {
-
-                        @Override
-                        public Object convert(Object data) {
-                            Object local = convertDateToLocalDateTime(column, fieldDefn, data);
-                            System.out.println(local.getClass().getName() + " =1> " + local.getClass().getName());
-                            return local;
-                        }
-                    }.and(PostgresValueConverter.super.converter(column, fieldDefn));
-
-                    @Override
-                    public Object convert(Object data) {
-                        System.out.println(column.name());
-                        Object result = inner.convert(data);
-                        System.out.println(data.getClass().getName() + " =2> " + result.getClass().getName());
-                        return result;
-                    }
-                };
+                return data -> convertDate(column, fieldDefn, data);
             case PgOid.TIMESTAMP:
-                return new ValueConverter() {
-
-                    ValueConverter inner = new ValueConverter() {
-
-                        @Override
-                        public Object convert(Object data) {
-                            Object local = convertTimestampToLocalDateTime(column, fieldDefn, data);
-                            System.out.println(local.getClass().getName() + " -=1> " + local.getClass().getName());
-                            return local;
-                        }
-                    }.and(PostgresValueConverter.super.converter(column, fieldDefn));
-
-                    @Override
-                    public Object convert(Object data) {
-                        System.out.println(column.name());
-                        Object result = inner.convert(data);
-                        System.out.println(data.getClass().getName() + " -=2> " + result.getClass().getName());
-                        return result;
-                    }
-                };
+                return ((ValueConverter) (data -> convertTimestampToLocalDateTime(column, fieldDefn, data))).and(super.converter(column, fieldDefn));
             case PgOid.TIMESTAMPTZ:
                 return data -> convertTimestampWithZone(column, fieldDefn, data);
             case PgOid.TIMETZ:
@@ -890,6 +852,18 @@ public class PostgresValueConverter extends JdbcValueConverters {
         });
     }
 
+    protected Object convertDate(Column column, Field fieldDefn, Object data) {
+        if (POSITIVE_INFINITY_DATE.equals(data)) {
+            return "infinity";
+        }
+        else if (NEGATIVE_INFINITY_DATE.equals(data)) {
+            return "-infinity";
+        }
+        else {
+            return super.converter(column, fieldDefn).convert(data);
+        }
+    }
+
     @Override
     protected Object convertTimestampWithZone(Column column, Field fieldDefn, Object data) {
         if (data instanceof java.util.Date) {
@@ -1108,23 +1082,6 @@ public class PostgresValueConverter extends JdbcValueConverters {
                 .ofInstant(instant, ZoneOffset.systemDefault());
 
         return utcTime;
-    }
-
-    protected Object convertDateToLocalDateTime(Column column, Field fieldDefn, Object data) {
-        if (data == null) {
-            return null;
-        }
-        if (!(data instanceof Date)) {
-            return data;
-        }
-        if (POSITIVE_INFINITY_DATE.equals(data)) {
-            return POSITIVE_INFINITY_LOCAL_DATE_TIME;
-        }
-        else if (NEGATIVE_INFINITY_DATE.equals(data)) {
-            return NEGATIVE_INFINITY_LOCAL_DATE_TIME;
-        }
-
-        return data;
     }
 
     @Override

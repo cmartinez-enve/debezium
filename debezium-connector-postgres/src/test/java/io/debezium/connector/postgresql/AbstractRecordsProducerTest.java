@@ -54,6 +54,7 @@ import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
+import org.postgresql.jdbc.PgStatement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,6 +81,7 @@ import io.debezium.time.Interval;
 import io.debezium.time.MicroDuration;
 import io.debezium.time.MicroTime;
 import io.debezium.time.MicroTimestamp;
+import io.debezium.time.Time;
 import io.debezium.time.Timestamp;
 import io.debezium.time.ZonedTime;
 import io.debezium.time.ZonedTimestamp;
@@ -631,8 +633,31 @@ public abstract class AbstractRecordsProducerTest extends AbstractConnectorTest 
             assertTrue("Negative timestamp don't match for " + fieldName + ", got " + actualValue,
                     expectedMinTsSnapshot.equals(actualValue) || expectedMinTsStreaming.equals(actualValue));
         };
-        return Arrays.asList(
-                new SchemaAndValueField("date_pinf", Date.builder().optional().build(), "infinity"));
+        return Arrays.asList(new SchemaAndValueField("ts", MicroTimestamp.builder().optional().build(), expectedTs),
+                new SchemaAndValueField("tsneg", MicroTimestamp.builder().optional().build(), expectedNegTs),
+                new SchemaAndValueField("ts_ms", Timestamp.builder().optional().build(), expectedTsMs),
+                new SchemaAndValueField("ts_us", MicroTimestamp.builder().optional().build(), expectedTs),
+                new SchemaAndValueField("tz", ZonedTimestamp.builder().optional().build(), expectedTz),
+                new SchemaAndValueField("date", Date.builder().optional().build(), expectedDate),
+                new SchemaAndValueField("date_pinf", Date.builder().optional().build(), "infinity"),
+                new SchemaAndValueField("ti", MicroTime.builder().optional().build(), expectedTi),
+                new SchemaAndValueField("tip", Time.builder().optional().build(), (int) expectedTiPrecision),
+                new SchemaAndValueField("ttf", MicroTime.builder().optional().build(), expectedTtf),
+                new SchemaAndValueField("ttz", ZonedTime.builder().optional().build(), expectedTtz),
+                new SchemaAndValueField("tptz", ZonedTime.builder().optional().build(), expectedTtzPrecision),
+                new SchemaAndValueField("it", MicroDuration.builder().optional().build(), expectedInterval),
+                new SchemaAndValueField("ts_large", MicroTimestamp.builder().optional().build(), expectedTsLarge),
+                new SchemaAndValueField("ts_large_us", MicroTimestamp.builder().optional().build(), expectedTsLargeUs),
+                new SchemaAndValueField("ts_large_ms", Timestamp.builder().optional().build(), expectedTsLargeMs),
+                new SchemaAndValueField("tz_large", ZonedTimestamp.builder().optional().build(), expectedTzLarge),
+                new SchemaAndValueField("ts_max", MicroTimestamp.builder().optional().build(), 9223371331200000000L - 1L),
+                new SchemaAndValueField("ts_min", MicroTimestamp.builder().optional().build(), -1L).assertWithCondition(largeNegativeTimestamp),
+                new SchemaAndValueField("tz_max", ZonedTimestamp.builder().optional().build(), "+294247-01-01T23:59:59.999999Z"),
+                new SchemaAndValueField("tz_min", ZonedTimestamp.builder().optional().build(), "").assertWithCondition(largeNegativeTzTimestamp),
+                new SchemaAndValueField("ts_pinf", MicroTimestamp.builder().optional().build(), PgStatement.DATE_POSITIVE_INFINITY),
+                new SchemaAndValueField("ts_ninf", MicroTimestamp.builder().optional().build(), PgStatement.DATE_NEGATIVE_INFINITY),
+                new SchemaAndValueField("tz_pinf", ZonedTimestamp.builder().optional().build(), "infinity"),
+                new SchemaAndValueField("tz_ninf", ZonedTimestamp.builder().optional().build(), "-infinity"));
     }
 
     protected List<SchemaAndValueField> schemaAndValuesForTimeArrayTypes() {
