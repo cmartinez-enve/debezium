@@ -590,7 +590,7 @@ public abstract class AbstractRecordsProducerTest extends AbstractConnectorTest 
         long expectedTsMs = asEpochMillis("2016-11-04T13:51:30.123456");
         long expectedNegTs = asEpochMicros("1936-10-25T22:10:12.608");
         String expectedTz = "2016-11-04T11:51:30.123456Z"; // timestamp is stored with TZ, should be read back with UTC
-        int expectedDate = Date.toEpochDay(LocalDate.parse("2016-11-04"), null);
+        String expectedDate = "2016-11-04";
         long expectedTi = LocalTime.parse("13:51:30").toNanoOfDay() / 1_000;
         long expectedTiPrecision = LocalTime.parse("13:51:30.123").toNanoOfDay() / 1_000_000;
         long expectedTtf = TimeUnit.DAYS.toNanos(1) / 1_000;
@@ -769,9 +769,9 @@ public abstract class AbstractRecordsProducerTest extends AbstractConnectorTest 
                         Arrays.asList("vcone", "vctwo", "vcthree")),
                 new SchemaAndValueField("date_array", SchemaBuilder.array(Date.builder().optional().schema()).optional().build(),
                         Arrays.asList(
-                                (int) LocalDate.of(2016, Month.NOVEMBER, 4).toEpochDay(),
-                                (int) LocalDate.of(2016, Month.NOVEMBER, 5).toEpochDay(),
-                                (int) LocalDate.of(2016, Month.NOVEMBER, 6).toEpochDay())),
+                                LocalDate.of(2016, Month.NOVEMBER, 4).toString(),
+                                LocalDate.of(2016, Month.NOVEMBER, 5).toString(),
+                                LocalDate.of(2016, Month.NOVEMBER, 6).toString())),
                 new SchemaAndValueField("numeric_array",
                         SchemaBuilder.array(Decimal.builder(2).parameter(TestHelper.PRECISION_PARAMETER_KEY, "10").optional().build()).optional().build(),
                         Arrays.asList(
@@ -944,8 +944,8 @@ public abstract class AbstractRecordsProducerTest extends AbstractConnectorTest 
                 new SchemaAndValueField("bool_alias", SchemaBuilder.BOOLEAN_SCHEMA, true),
                 new SchemaAndValueField("string_base", SchemaBuilder.STRING_SCHEMA, "hello"),
                 new SchemaAndValueField("string_alias", SchemaBuilder.STRING_SCHEMA, "hello"),
-                new SchemaAndValueField("date_base", Date.builder().build(), Date.toEpochDay(LocalDate.parse("2019-10-02"), null)),
-                new SchemaAndValueField("date_alias", Date.builder().build(), Date.toEpochDay(LocalDate.parse("2019-10-02"), null)),
+                new SchemaAndValueField("date_base", Date.builder().build(), "2019-10-02"),
+                new SchemaAndValueField("date_alias", Date.builder().build(), "2019-10-02"),
                 new SchemaAndValueField("time_base", MicroTime.builder().build(), LocalTime.parse("01:02:03").toNanoOfDay() / 1_000),
                 new SchemaAndValueField("time_alias", MicroTime.builder().build(), LocalTime.parse("01:02:03").toNanoOfDay() / 1_000),
                 new SchemaAndValueField("timetz_base", ZonedTime.builder().build(), "01:02:03.123789Z"),
