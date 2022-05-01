@@ -35,7 +35,7 @@ public class Date {
      * @return the schema builder
      */
     public static SchemaBuilder builder() {
-        return SchemaBuilder.int32()
+        return SchemaBuilder.string()
                 .name(SCHEMA_NAME)
                 .version(1);
     }
