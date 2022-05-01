@@ -15,6 +15,7 @@ import java.math.RoundingMode;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -89,12 +90,14 @@ import io.debezium.util.Strings;
  */
 public class PostgresValueConverter extends JdbcValueConverters {
 
+    public static final Date POSITIVE_INFINITY_DATE = new Date(PGStatement.DATE_POSITIVE_INFINITY);
     public static final Timestamp POSITIVE_INFINITY_TIMESTAMP = new Timestamp(PGStatement.DATE_POSITIVE_INFINITY);
     public static final Instant POSITIVE_INFINITY_INSTANT = Conversions.toInstantFromMicros(PGStatement.DATE_POSITIVE_INFINITY);
     public static final LocalDateTime POSITIVE_INFINITY_LOCAL_DATE_TIME = LocalDateTime.ofInstant(POSITIVE_INFINITY_INSTANT, ZoneOffset.UTC);
     public static final OffsetDateTime POSITIVE_INFINITY_OFFSET_DATE_TIME = OffsetDateTime.ofInstant(Conversions.toInstantFromMillis(PGStatement.DATE_POSITIVE_INFINITY),
             ZoneOffset.UTC);
 
+    public static final Date NEGATIVE_INFINITY_DATE = new Date(PGStatement.DATE_NEGATIVE_INFINITY);
     public static final Timestamp NEGATIVE_INFINITY_TIMESTAMP = new Timestamp(PGStatement.DATE_NEGATIVE_INFINITY);
     public static final Instant NEGATIVE_INFINITY_INSTANT = Conversions.toInstantFromMicros(PGStatement.DATE_NEGATIVE_INFINITY);
     public static final LocalDateTime NEGATIVE_INFINITY_LOCAL_DATE_TIME = LocalDateTime.ofInstant(NEGATIVE_INFINITY_INSTANT, ZoneOffset.UTC);
@@ -199,6 +202,8 @@ public class PostgresValueConverter extends JdbcValueConverters {
                 return column.length() > 1 ? Bits.builder(column.length()) : SchemaBuilder.bool();
             case PgOid.INTERVAL:
                 return intervalMode == IntervalHandlingMode.STRING ? Interval.builder() : MicroDuration.builder();
+            case PgOid.DATE:
+                return io.debezium.time.Date.builder();
             case PgOid.TIMESTAMPTZ:
                 // JDBC reports this as "timestamp" even though it's with tz, so we can't use the base class...
                 return ZonedTimestamp.builder();
@@ -431,6 +436,8 @@ public class PostgresValueConverter extends JdbcValueConverters {
                 return data -> convertInterval(column, fieldDefn, data);
             case PgOid.TIME:
                 return data -> convertTime(column, fieldDefn, data);
+            case PgOid.DATE:
+                return data -> convertDate(column, fieldDefn, data);
             case PgOid.TIMESTAMP:
                 return ((ValueConverter) (data -> convertTimestampToLocalDateTime(column, fieldDefn, data))).and(super.converter(column, fieldDefn));
             case PgOid.TIMESTAMPTZ:
@@ -844,6 +851,21 @@ public class PostgresValueConverter extends JdbcValueConverters {
                 }
             }
         });
+    }
+
+    protected Object convertDate(Column column, Field fieldDefn, Object data) {
+        if (POSITIVE_INFINITY_DATE.equals(data)) {
+            return "infinity";
+        }
+        else if (NEGATIVE_INFINITY_DATE.equals(data)) {
+            return "-infinity";
+        }
+        else {
+        	if (data instanceof LocalDate) {
+        		return String.valueOf(data);
+        	}
+            return new SimpleDateFormat("yyyy-MM-dd").format(data);
+        }
     }
 
     @Override

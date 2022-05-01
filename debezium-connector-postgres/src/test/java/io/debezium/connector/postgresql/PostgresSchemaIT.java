@@ -18,7 +18,6 @@ import static org.junit.Assert.assertTrue;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
@@ -470,7 +469,7 @@ public class PostgresSchemaIT {
             assertColumnDefault("char", "abcd", columns, defaultValueConverter);
             assertColumnDefault("varchar", "abcde", columns, defaultValueConverter);
 
-            assertColumnDefault("date", (int) LocalDate.of(2021, 3, 19).toEpochDay(), columns, defaultValueConverter);
+            assertColumnDefault("date", "2021-03-19", columns, defaultValueConverter);
             assertColumnDefault("date_func", 0, columns, defaultValueConverter);
 
             assertColumnDefault("double", 123456789.1234567890123, columns, defaultValueConverter);

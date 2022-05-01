@@ -106,11 +106,12 @@ public abstract class AbstractRecordsProducerTest extends AbstractConnectorTest 
     protected static final String INSERT_CASH_TYPES_STMT = "INSERT INTO cash_table (csh) VALUES ('$1234.11')";
     protected static final String INSERT_NEGATIVE_CASH_TYPES_STMT = "INSERT INTO cash_table (csh) VALUES ('($1234.11)')";
     protected static final String INSERT_NULL_CASH_TYPES_STMT = "INSERT INTO cash_table (csh) VALUES (NULL)";
-    protected static final String INSERT_DATE_TIME_TYPES_STMT = "INSERT INTO time_table(ts, tsneg, ts_ms, ts_us, tz, date, ti, tip, ttf, ttz, tptz, it, ts_large, ts_large_us, ts_large_ms, tz_large, ts_max, ts_min, tz_max, tz_min, ts_pinf, ts_ninf, tz_pinf, tz_ninf) "
+    protected static final String INSERT_DATE_TIME_TYPES_STMT = "INSERT INTO time_table(ts, tsneg, ts_ms, ts_us, tz, date, date_pinf, date_ninf, ti, tip, ttf, ttz, tptz, it, ts_large, ts_large_us, ts_large_ms, tz_large, ts_max, ts_min, tz_max, tz_min, ts_pinf, ts_ninf, tz_pinf, tz_ninf) "
             +
             "VALUES ('2016-11-04T13:51:30.123456'::TIMESTAMP, '1936-10-25T22:10:12.608'::TIMESTAMP, '2016-11-04T13:51:30.123456'::TIMESTAMP, '2016-11-04T13:51:30.123456'::TIMESTAMP, '2016-11-04T13:51:30.123456+02:00'::TIMESTAMPTZ, "
             +
-            "'2016-11-04'::DATE, '13:51:30'::TIME, '13:51:30.123'::TIME, '24:00:00'::TIME, '13:51:30.123789+02:00'::TIMETZ, '13:51:30.123+02:00'::TIMETZ, " +
+            "'2016-11-04'::DATE, 'infinity'::DATE, '-infinity'::DATE, '13:51:30'::TIME, '13:51:30.123'::TIME, '24:00:00'::TIME, '13:51:30.123789+02:00'::TIMETZ, '13:51:30.123+02:00'::TIMETZ, "
+            +
             "'P1Y2M3DT4H5M6.78S'::INTERVAL," +
             "'21016-11-04T13:51:30.123456'::TIMESTAMP, '21016-11-04T13:51:30.123457'::TIMESTAMP, '21016-11-04T13:51:30.124'::TIMESTAMP," +
             "'21016-11-04T13:51:30.123456+07:00'::TIMESTAMPTZ," +
@@ -590,7 +591,7 @@ public abstract class AbstractRecordsProducerTest extends AbstractConnectorTest 
         long expectedTsMs = asEpochMillis("2016-11-04T13:51:30.123456");
         long expectedNegTs = asEpochMicros("1936-10-25T22:10:12.608");
         String expectedTz = "2016-11-04T11:51:30.123456Z"; // timestamp is stored with TZ, should be read back with UTC
-        int expectedDate = Date.toEpochDay(LocalDate.parse("2016-11-04"), null);
+        String expectedDate = "2016-11-04";
         long expectedTi = LocalTime.parse("13:51:30").toNanoOfDay() / 1_000;
         long expectedTiPrecision = LocalTime.parse("13:51:30.123").toNanoOfDay() / 1_000_000;
         long expectedTtf = TimeUnit.DAYS.toNanos(1) / 1_000;
@@ -638,6 +639,8 @@ public abstract class AbstractRecordsProducerTest extends AbstractConnectorTest 
                 new SchemaAndValueField("ts_us", MicroTimestamp.builder().optional().build(), expectedTs),
                 new SchemaAndValueField("tz", ZonedTimestamp.builder().optional().build(), expectedTz),
                 new SchemaAndValueField("date", Date.builder().optional().build(), expectedDate),
+                new SchemaAndValueField("date_pinf", Date.builder().optional().build(), "infinity"),
+                new SchemaAndValueField("date_ninf", Date.builder().optional().build(), "-infinity"),
                 new SchemaAndValueField("ti", MicroTime.builder().optional().build(), expectedTi),
                 new SchemaAndValueField("tip", Time.builder().optional().build(), (int) expectedTiPrecision),
                 new SchemaAndValueField("ttf", MicroTime.builder().optional().build(), expectedTtf),
@@ -767,9 +770,9 @@ public abstract class AbstractRecordsProducerTest extends AbstractConnectorTest 
                         Arrays.asList("vcone", "vctwo", "vcthree")),
                 new SchemaAndValueField("date_array", SchemaBuilder.array(Date.builder().optional().schema()).optional().build(),
                         Arrays.asList(
-                                (int) LocalDate.of(2016, Month.NOVEMBER, 4).toEpochDay(),
-                                (int) LocalDate.of(2016, Month.NOVEMBER, 5).toEpochDay(),
-                                (int) LocalDate.of(2016, Month.NOVEMBER, 6).toEpochDay())),
+                                LocalDate.of(2016, Month.NOVEMBER, 4).toString(),
+                                LocalDate.of(2016, Month.NOVEMBER, 5).toString(),
+                                LocalDate.of(2016, Month.NOVEMBER, 6).toString())),
                 new SchemaAndValueField("numeric_array",
                         SchemaBuilder.array(Decimal.builder(2).parameter(TestHelper.PRECISION_PARAMETER_KEY, "10").optional().build()).optional().build(),
                         Arrays.asList(
@@ -942,8 +945,8 @@ public abstract class AbstractRecordsProducerTest extends AbstractConnectorTest 
                 new SchemaAndValueField("bool_alias", SchemaBuilder.BOOLEAN_SCHEMA, true),
                 new SchemaAndValueField("string_base", SchemaBuilder.STRING_SCHEMA, "hello"),
                 new SchemaAndValueField("string_alias", SchemaBuilder.STRING_SCHEMA, "hello"),
-                new SchemaAndValueField("date_base", Date.builder().build(), Date.toEpochDay(LocalDate.parse("2019-10-02"), null)),
-                new SchemaAndValueField("date_alias", Date.builder().build(), Date.toEpochDay(LocalDate.parse("2019-10-02"), null)),
+                new SchemaAndValueField("date_base", Date.builder().build(), "2019-10-02"),
+                new SchemaAndValueField("date_alias", Date.builder().build(), "2019-10-02"),
                 new SchemaAndValueField("time_base", MicroTime.builder().build(), LocalTime.parse("01:02:03").toNanoOfDay() / 1_000),
                 new SchemaAndValueField("time_alias", MicroTime.builder().build(), LocalTime.parse("01:02:03").toNanoOfDay() / 1_000),
                 new SchemaAndValueField("timetz_base", ZonedTime.builder().build(), "01:02:03.123789Z"),
