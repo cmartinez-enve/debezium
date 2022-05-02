@@ -856,11 +856,14 @@ public class PostgresValueConverter extends JdbcValueConverters {
     protected Object convertDate(Column column, Field fieldDefn, Object data) {
         if (POSITIVE_INFINITY_DATE.equals(data)) {
             return "infinity";
-        } else if (NEGATIVE_INFINITY_DATE.equals(data)) {
+        }
+        else if (NEGATIVE_INFINITY_DATE.equals(data)) {
             return "-infinity";
-        } else if (data instanceof LocalDate) {
+        }
+        else if (data instanceof LocalDate) {
             return String.valueOf(data);
-        } else {
+        }
+        else {
             return new SimpleDateFormat("yyyy-MM-dd").format(data);
         }
     }
