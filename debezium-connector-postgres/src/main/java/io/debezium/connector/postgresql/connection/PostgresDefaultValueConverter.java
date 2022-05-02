@@ -163,7 +163,7 @@ public class PostgresDefaultValueConverter implements DefaultValueConverter {
 
         result.put("uuid", (c, v) -> UUID.fromString(extractDefault(v, "00000000-0000-0000-0000-000000000000"))); // Sample value: '76019d1a-ad2e-4b22-96e9-1a6d6543c818'::uuid
 
-        result.put("date", (c, v) -> timestampUtils.toLocalDateTime(extractDefault(v, "1970-01-01")));
+        result.put("date", (c, v) -> timestampUtils.toLocalDateTime(extractDefault(v, "1970-01-01")).toLocalDate());
         result.put("time", (c, v) -> timestampUtils.toLocalTime(extractDefault(v, "00:00")));
         result.put("timestamp", (c, v) -> timestampUtils.toOffsetDateTime(extractDefault(v, "1970-01-01")));
         result.put("timestamptz", (c, v) -> timestampUtils.toOffsetDateTime(extractDefault(v, "1970-01-01")));
