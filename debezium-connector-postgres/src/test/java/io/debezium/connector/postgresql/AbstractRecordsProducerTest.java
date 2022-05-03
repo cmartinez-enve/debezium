@@ -697,7 +697,7 @@ public abstract class AbstractRecordsProducerTest extends AbstractConnectorTest 
         long expectedTsMs = asEpochMillis("2016-11-04T13:51:30.123456");
         long expectedNegTs = asEpochMicros("1936-10-25T22:10:12.608");
         String expectedTz = "2016-11-04T11:51:30.123456Z"; // timestamp is stored with TZ, should be read back with UTC
-        int expectedDate = Date.toEpochDay(LocalDate.parse("2016-11-04"), null);
+        String expectedDate = "2016-11-04";
         long expectedTi = LocalTime.parse("13:51:30").toNanoOfDay() / 1_000;
         String expectedTtz = "11:51:30.123789Z"; // time is stored with TZ, should be read back at GMT
         long expectedInterval = MicroDuration.durationMicros(1, 2, 3, 4, 5, 6.78, MicroDuration.DAYS_PER_MONTH_AVG);
