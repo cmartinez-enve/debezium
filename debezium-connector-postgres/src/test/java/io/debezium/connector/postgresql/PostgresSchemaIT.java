@@ -471,7 +471,7 @@ public class PostgresSchemaIT {
             assertColumnDefault("varchar", "abcde", columns, defaultValueConverter);
 
             assertColumnDefault("date", LocalDate.of(2021, 3, 19).toString(), columns, defaultValueConverter);
-            assertColumnDefault("date_func", 0, columns, defaultValueConverter);
+            assertColumnDefault("date_func", LocalDate.ofEpochDay(0).toString(), columns, defaultValueConverter);
 
             assertColumnDefault("double", 123456789.1234567890123, columns, defaultValueConverter);
             assertColumnDefault("integer", 2147483647, columns, defaultValueConverter);
